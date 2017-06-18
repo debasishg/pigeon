@@ -16,9 +16,13 @@ class Money private[laws] (val items: Map[Currency, BigDecimal]) {
     val amount = i._2
     a + Money.exchangeRateWithUSD.get(ccy).getOrElse(BigDecimal(1)) * amount
   }
+
+  override def toString = items.toList.mkString(",")
 }
 
 object Money {
+  final val zeroMoney = new Money(Map.empty[Currency, BigDecimal])
+
   def apply(amount: BigDecimal, ccy: Currency) = new Money(Map(ccy -> amount))
   def add(m: Money, amount: BigDecimal, ccy: Currency) = new Money(m.items |+| Map(ccy -> amount))
   def add(m: Money, n: Money) = new Money(m.items |+| n.items)
@@ -26,16 +30,16 @@ object Money {
   final val exchangeRateWithUSD: Map[Currency, BigDecimal] = 
     Map(AUD -> 0.76, JPY -> 0.009, INR -> 0.016, USD -> 1.0)
 
-  implicit val MoneyAddMonoid: Monoid[Money] = new Monoid[Money] {
+  val MoneyAddMonoid: Monoid[Money] = new Monoid[Money] {
     def combine(m: Money, n: Money): Money = add(m, n)
-    def empty: Money = new Money(Map.empty[Currency, BigDecimal])
+    def empty: Money = zeroMoney
   }
 
   implicit val MoneyEq: Eq[Money] = new Eq[Money] {
     def eqv(m: Money, n: Money): Boolean = m.items === n.items
   }
 
-  implicit val MoneyOrderMonoid: Order[Money] = new Order[Money] {
+  val MoneyOrder: Order[Money] = new Order[Money] {
     def compare(m: Money, n: Money) = {
       val mbase = m.toBaseCurrency
       val nbase = n.toBaseCurrency
@@ -43,5 +47,14 @@ object Money {
       else if (mbase < nbase) -1
       else 0
     }
+  }
+
+  val MoneyOrderMonoid: Monoid[Money] = new Monoid[Money] {
+    def combine(m: Money, n: Money): Money = 
+      if (m === zeroMoney) n
+      else if (n === zeroMoney) m
+      else if (MoneyOrder.compare(m, n) >= 0) m else n
+
+    def empty: Money = zeroMoney
   }
 }
