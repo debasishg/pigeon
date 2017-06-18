@@ -11,9 +11,7 @@ case object JPY extends Currency
 case object INR extends Currency
 
 class Money private[laws] (val items: Map[Currency, BigDecimal]) {
-  def toBaseCurrency: BigDecimal = items.foldLeft(BigDecimal(0)) { (a, i) =>
-    val ccy = i._1
-    val amount = i._2
+  def toBaseCurrency: BigDecimal = items.foldLeft(BigDecimal(0)) { case (a, (ccy, amount)) =>
     a + Money.exchangeRateWithUSD.get(ccy).getOrElse(BigDecimal(1)) * amount
   }
 
