@@ -15,6 +15,8 @@ class Money private[laws] (val items: Map[Currency, BigDecimal]) {
     a + Money.exchangeRateWithUSD.get(ccy).getOrElse(BigDecimal(1)) * amount
   }
 
+  def isDebit = toBaseCurrency < 0
+
   override def toString = items.toList.mkString(",")
 }
 

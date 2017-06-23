@@ -16,14 +16,7 @@ class MoneySpec extends CatsSpec { def is = s2"""
      form a monoid under ordering    $e2 
   """
 
-  implicit lazy val arbCurrency: Arbitrary[Currency] = Arbitrary { Gen.oneOf(AUD, USD, INR, JPY) }
-
-  implicit def moneyArbitrary: Arbitrary[Money] = 
-    Arbitrary {
-      for {
-        i <- Arbitrary.arbitrary[Map[Currency, BigDecimal]]
-      } yield new Money(i)
-    }
+  import MoneyDataGen._
 
   def e1 = checkAll("Money", GroupLaws[Money].monoid(Money.MoneyAddMonoid))
   def e2 = checkAll("Money", GroupLaws[Money].monoid(Money.MoneyOrderMonoid))
@@ -39,3 +32,12 @@ class MoneySpec extends CatsSpec { def is = s2"""
   */
 }
 
+object MoneyDataGen {
+  implicit lazy val arbCurrency: Arbitrary[Currency] = Arbitrary { Gen.oneOf(AUD, USD, INR, JPY) }
+
+  implicit def moneyArbitrary: Arbitrary[Money] = Arbitrary {
+    for {
+      i <- Arbitrary.arbitrary[Map[Currency, BigDecimal]]
+    } yield new Money(i)
+  }
+}
