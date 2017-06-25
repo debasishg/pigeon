@@ -16,6 +16,7 @@ class Money private[laws] (val items: Map[Currency, BigDecimal]) {
   }
 
   def isDebit = toBaseCurrency < 0
+  def +(m: Money) = new Money(items |+| m.items)
 
   override def toString = items.toList.mkString(",")
 }
@@ -23,9 +24,21 @@ class Money private[laws] (val items: Map[Currency, BigDecimal]) {
 object Money {
   final val zeroMoney = new Money(Map.empty[Currency, BigDecimal])
 
+  // smart constructor
   def apply(amount: BigDecimal, ccy: Currency) = new Money(Map(ccy -> amount))
+
+  // uses the algebraic properties of Money
   def add(m: Money, amount: BigDecimal, ccy: Currency) = new Money(m.items |+| Map(ccy -> amount))
   def add(m: Money, n: Money) = new Money(m.items |+| n.items)
+
+  // concrete naive implementation: don't
+  def addSimple(m: Money, n: Money) = new Money(
+    (m.items.toList ++ n.items.toList)
+      .groupBy(_._1)
+      .map { case (k, v) => 
+        (k, v.map(_._2).sum) 
+      }
+    )
 
   final val exchangeRateWithUSD: Map[Currency, BigDecimal] = 
     Map(AUD -> 0.76, JPY -> 0.009, INR -> 0.016, USD -> 1.0)

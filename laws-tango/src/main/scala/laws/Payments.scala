@@ -19,6 +19,13 @@ object Payments extends Utils {
   }
 
   // generic implementation
-  def valuation(payments: List[Payment])(implicit m: Monoid[Money]) =
+  def valuation(payments: List[Payment]): Money = {
+    implicit val m: Monoid[Money] = Money.MoneyAddMonoid
     mapReduce(payments)(creditsOnly)
+  }
+
+  def maxPayment(payments: List[Payment]): Money = {
+    implicit val m: Monoid[Money] = Money.MoneyOrderMonoid
+    mapReduce(payments)(creditsOnly)
+  }
 }
