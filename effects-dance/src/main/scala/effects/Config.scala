@@ -1,0 +1,3 @@
+package effects
+
+trait Config
