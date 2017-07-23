@@ -25,7 +25,7 @@ class PaymentServiceInterpreterWithKleisliAndErrorHandling[M[+_]](implicit me: M
     Kleisli {(payments: List[Payment]) => 
       val amountToPost = valuation(payments)
       //.. do the posting
-      PaymentProcessingResult.ProcessingSuccess.pure[M]
+      PaymentProcessingResult.ProcessingSuccess(payments.map(_.account.emailAddress)).pure[M]
     }
 
   private def valuation(payments: List[Payment]): Money = {

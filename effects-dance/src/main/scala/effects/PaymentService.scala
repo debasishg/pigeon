@@ -4,6 +4,7 @@ import cats._
 import cats.data._
 import cats.implicits._
 
+// algebra
 trait PaymentServiceWithErrorHandling[M[_]] {
   def paymentCycle: M[PaymentCycle]
   def qualifyingAccounts: PaymentCycle => M[List[Account]]
@@ -22,6 +23,7 @@ trait PaymentServiceWithErrorHandling[M[_]] {
   }
 }
 
+// algebra
 trait PaymentServiceWithKleisliAndErrorHandling[M[_]] {
   def paymentCycle: Kleisli[M, Config, PaymentCycle]
   def qualifyingAccounts: Kleisli[M, PaymentCycle, List[Account]]

@@ -2,7 +2,7 @@ package effects
 
 sealed trait PaymentProcessingResult
 object PaymentProcessingResult {
-  case object ProcessingSuccess extends PaymentProcessingResult
+  case class ProcessingSuccess(emailAddresses: List[EmailAddress]) extends PaymentProcessingResult
   case class ProcessingFailure(reason: Throwable) extends PaymentProcessingResult
 }
 
