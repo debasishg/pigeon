@@ -8,8 +8,9 @@ import cats.data._
 import cats.implicits._
 
 object Main {
-  val paymentInterpreter = new PaymentServiceInterpreterWithKleisliAndErrorHandling[Future]
+  val paymentInterpreter = new PaymentServiceInterpreterWithKleisli[Future]
   val emailInterpreter = new EmailServiceInterpreter[Future]
+  val auditablePaymentInterpreter = new AuditablePaymentService[Future](new PaymentServiceInterpreter[Future])
 
   import paymentInterpreter._
   import emailInterpreter._

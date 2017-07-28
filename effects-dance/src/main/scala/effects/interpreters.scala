@@ -6,28 +6,27 @@ import cats.implicits._
 
 import Payments._
 
-class PaymentServiceInterpreterWithErrorHandling[M[+_]](implicit me: MonadError[M, Throwable])
-  extends PaymentServiceWithErrorHandling[M] with Utils {
+class PaymentServiceInterpreter[M[+_]](implicit me: MonadError[M, Throwable])
+  extends PaymentService[M] with Utils {
 
   def paymentCycle: M[PaymentCycle] = PaymentCycle(10, 2014).pure[M]
 
-  def qualifyingAccounts: PaymentCycle => M[List[Account]] =
-    (p: PaymentCycle) => List.empty[Account].pure[M]
+  def qualifyingAccounts(p: PaymentCycle): M[Vector[Account]] =
+    Vector.empty[Account].pure[M]
 
-  def payments: List[Account] => M[List[Payment]] =
-    (accounts: List[Account]) => List.empty[Payment].pure[M]
+  def payments(accounts: Vector[Account]): M[Vector[Payment]] =
+    Vector.empty[Payment].pure[M]
 
-  def adjustTax: List[Payment] => M[List[Payment]] =
-    (payments: List[Payment]) => payments.pure[M]
+  def adjustTax(payments: Vector[Payment]): M[Vector[Payment]] =
+    payments.pure[M]
 
-  def postToLedger: List[Payment] => M[PaymentProcessingResult] =
-    (payments: List[Payment]) => { 
+  def postToLedger(payments: Vector[Payment]): M[PaymentProcessingResult] = {
       val amountToPost = valuation(payments)
       //.. do the posting
-      PaymentProcessingResult.ProcessingSuccess(payments.map(_.account.emailAddress)).pure[M]
+      PaymentProcessingResult.ProcessingSuccess(payments.map(_.account.emailAddress).toList).pure[M]
     }
 
-  private def valuation(payments: List[Payment]): Money = {
+  private def valuation(payments: Vector[Payment]): Money = {
     implicit val m: Monoid[Money] = Money.MoneyAddMonoid
     mapReduce(payments)(creditsOnly)
   }

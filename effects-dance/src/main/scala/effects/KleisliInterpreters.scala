@@ -6,8 +6,8 @@ import cats.implicits._
 
 import Payments._
 
-class PaymentServiceInterpreterWithKleisliAndErrorHandling[M[+_]](implicit me: MonadError[M, Throwable])
-  extends PaymentServiceWithKleisliAndErrorHandling[M] with Utils {
+class PaymentServiceInterpreterWithKleisli[M[+_]](implicit me: MonadError[M, Throwable])
+  extends PaymentServiceWithKleisli[M] with Utils {
 
   def paymentCycle: Kleisli[M, Config, PaymentCycle] =
     Kleisli((c: Config) => PaymentCycle(10, 2014).pure[M])

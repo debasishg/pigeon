@@ -5,12 +5,12 @@ import cats.data._
 import cats.implicits._
 
 // algebra
-trait PaymentServiceWithErrorHandling[M[_]] {
+trait PaymentService[M[_]] {
   def paymentCycle: M[PaymentCycle]
-  def qualifyingAccounts: PaymentCycle => M[List[Account]]
-  def payments: List[Account] => M[List[Payment]]
-  def adjustTax: List[Payment] => M[List[Payment]]
-  def postToLedger: List[Payment] => M[PaymentProcessingResult]
+  def qualifyingAccounts(paymentCycle: PaymentCycle): M[Vector[Account]]
+  def payments(accounts: Vector[Account]): M[Vector[Payment]]
+  def adjustTax(payments: Vector[Payment]): M[Vector[Payment]]
+  def postToLedger(payments: Vector[Payment]): M[PaymentProcessingResult]
 
   def processPayments()(implicit me: MonadError[M, Throwable]) = (for {
     p <- paymentCycle
@@ -24,7 +24,7 @@ trait PaymentServiceWithErrorHandling[M[_]] {
 }
 
 // algebra
-trait PaymentServiceWithKleisliAndErrorHandling[M[_]] {
+trait PaymentServiceWithKleisli[M[_]] {
   def paymentCycle: Kleisli[M, Config, PaymentCycle]
   def qualifyingAccounts: Kleisli[M, PaymentCycle, List[Account]]
   def payments: Kleisli[M, List[Account], List[Payment]]
