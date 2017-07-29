@@ -7,5 +7,10 @@ import cats.implicits._
 
 // algebra
 trait EmailService[M[_]] {
-  def sendEmail: Kleisli[M, PaymentProcessingResult, EmailSendResult]
+  def sendEmail(paymentCycle: PaymentCycle): M[Unit]
+}
+
+// algebra
+trait EmailServiceWithKleisli[M[_]] {
+  def sendEmail: Kleisli[M, Unit, Unit]
 }

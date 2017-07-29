@@ -21,6 +21,6 @@ final class AuditablePaymentService[M[_]: Applicative](paymentService: PaymentSe
   def adjustTax(payments: Vector[Payment]): WriterT[M, Vector[String], Vector[Payment]] =
     WriterT.putT(paymentService.adjustTax(payments))(payments.map(_.toString))
 
-  def postToLedger(payments: Vector[Payment]): WriterT[M, Vector[String], PaymentProcessingResult] =
+  def postToLedger(payments: Vector[Payment]): WriterT[M, Vector[String], Unit] =
     WriterT.lift(paymentService.postToLedger(payments))
 }

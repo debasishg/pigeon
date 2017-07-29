@@ -6,7 +6,7 @@ import cats.implicits._
 
 import Payments._
 
-class PaymentServiceInterpreterWithKleisli[M[+_]](implicit me: MonadError[M, Throwable])
+class PaymentServiceInterpreterWithKleisli[M[_]](implicit me: MonadError[M, String])
   extends PaymentServiceWithKleisli[M] with Utils {
 
   def paymentCycle: Kleisli[M, Config, PaymentCycle] =
@@ -21,11 +21,14 @@ class PaymentServiceInterpreterWithKleisli[M[+_]](implicit me: MonadError[M, Thr
   def adjustTax: Kleisli[M, List[Payment], List[Payment]] =
     Kleisli((payments: List[Payment]) => payments.pure[M])
 
-  def postToLedger: Kleisli[M, List[Payment], PaymentProcessingResult] =
+  def postToLedger: Kleisli[M, List[Payment], Unit] =
     Kleisli {(payments: List[Payment]) => 
       val amountToPost = valuation(payments)
-      //.. do the posting
-      PaymentProcessingResult.ProcessingSuccess(payments.map(_.account.emailAddress)).pure[M]
+      if (amountToPost == Money.zeroMoney) me.raiseError("0 valuation enountered")
+      else {
+        //.. do the posting
+        ().pure[M]
+      }
     }
 
   private def valuation(payments: List[Payment]): Money = {

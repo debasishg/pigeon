@@ -5,13 +5,16 @@ import cats.data._
 import cats.implicits._
 
 
-class EmailServiceInterpreter[M[+_]](implicit me: MonadError[M, Throwable])
+class EmailServiceInterpreterWithKleisli[M[_]](implicit me: Monad[M])
+  extends EmailServiceWithKleisli[M] {
+
+  def sendEmail: Kleisli[M, Unit, Unit] =
+    Kleisli(_ => ().pure[M])
+}
+
+class EmailServiceInterpreter[M[_]](implicit me: MonadError[M, String])
   extends EmailService[M] {
 
-  def sendEmail: Kleisli[M, PaymentProcessingResult, EmailSendResult] =
-    Kleisli((result: PaymentProcessingResult) => result match {
-      case PaymentProcessingResult.ProcessingSuccess(addresses) => EmailSendResult.EmailSent.pure[M]
-      case PaymentProcessingResult.ProcessingFailure(th) => EmailSendResult.EmailSendFailure(th).pure[M]
-    })
+  def sendEmail(paymentCycle: PaymentCycle): M[Unit] = ().pure[M]
 }
 

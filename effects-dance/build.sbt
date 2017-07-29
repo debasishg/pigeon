@@ -17,7 +17,7 @@ lazy val commonSettings = Seq(
     , Resolver.sonatypeRepo("releases")
     , Resolver.sonatypeRepo("snapshots")
   ),
-  scalaVersion := "2.12.2",
+  scalaVersion := "2.12.3",
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
       catsAll, catsEffect,
