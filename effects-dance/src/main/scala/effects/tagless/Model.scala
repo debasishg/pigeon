@@ -1,4 +1,5 @@
 package effects
+package tagless
 
 import java.time.OffsetDateTime
 import Money._

@@ -1,4 +1,5 @@
 package effects
+package tagless
 
 import cats._
 import cats.data._
@@ -19,20 +20,4 @@ trait PaymentService[M[_]] {
     a <- adjustTax(m)
     _ <- postToLedger(a)
   } yield p
-}
-
-// algebra
-trait PaymentServiceWithKleisli[M[_]] {
-  def paymentCycle: Kleisli[M, Config, PaymentCycle]
-  def qualifyingAccounts: Kleisli[M, PaymentCycle, List[Account]]
-  def payments: Kleisli[M, List[Account], List[Payment]]
-  def adjustTax: Kleisli[M, List[Payment], List[Payment]]
-  def postToLedger: Kleisli[M, List[Payment], Unit]
-
-  def processPayments()(implicit me: Monad[M]) = 
-    paymentCycle         andThen
-    qualifyingAccounts   andThen
-    payments             andThen
-    adjustTax            andThen
-    postToLedger
 }

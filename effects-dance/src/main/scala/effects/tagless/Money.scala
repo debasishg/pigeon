@@ -1,4 +1,5 @@
 package effects
+package tagless
 
 import cats._
 import cats.data._

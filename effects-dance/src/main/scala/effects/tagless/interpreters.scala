@@ -1,4 +1,5 @@
 package effects
+package tagless
 
 import cats._
 import cats.data._
@@ -6,7 +7,7 @@ import cats.implicits._
 
 import Payments._
 
-class PaymentServiceInterpreter[M[_]](implicit me: MonadError[M, String])
+class PaymentServiceInterpreter[M[_]](implicit me: MonadError[M, Throwable])
   extends PaymentService[M] with Utils {
 
   def paymentCycle: M[PaymentCycle] = PaymentCycle(10, 2014).pure[M]
@@ -14,9 +15,9 @@ class PaymentServiceInterpreter[M[_]](implicit me: MonadError[M, String])
   def qualifyingAccounts(p: PaymentCycle): M[Vector[Account]] =
     Vector.empty[Account].pure[M]
 
-  def payments(accounts: Vector[Account]): M[Vector[Payment]] = 
-    if (accounts.isEmpty) me.raiseError("Empty account list")
-    else Vector.empty[Payment].pure[M]
+  def payments(accounts: Vector[Account]): M[Vector[Payment]] = Vector.empty[Payment].pure[M] 
+    // if (accounts.isEmpty) me.raiseError(new IllegalArgumentException("Empty account list"))
+    // else Vector.empty[Payment].pure[M]
 
   def adjustTax(payments: Vector[Payment]): M[Vector[Payment]] =
     payments.pure[M]

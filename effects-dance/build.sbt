@@ -9,6 +9,8 @@ val specs2Version = "3.8.9" // use the version used by discipline
 val specs2Core  = "org.specs2" %% "specs2-core" % specs2Version
 val specs2Scalacheck = "org.specs2" %% "specs2-scalacheck" % specs2Version
 val scalacheck = "org.scalacheck" %% "scalacheck" % "1.12.4"
+val monix = "io.monix" %% "monix" % "2.3.0"
+val monixCats = "io.monix" %% "monix-cats" % "2.3.0"
 
 lazy val commonSettings = Seq(
   version := "0.0.1",
@@ -20,7 +22,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.3",
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
-      catsAll, catsEffect,
+      catsAll, catsEffect, monix, monixCats,
       specs2Core % Test, specs2Scalacheck % Test, scalacheck % Test,
       macroParadise, kindProjector
     )
