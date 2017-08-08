@@ -38,6 +38,10 @@ trait ExpSYM[Repr] {
   def add: Repr => Repr => Repr
 }
 
+trait MulSYM[Repr] {
+  def mul: Repr => Repr => Repr
+}
+
 trait ExpSYMVals {
   // To interpret finally-encoded expressions, we write an instance for ExpSYM, specifying the semantic domain. 
   // For example, we may interpret expressions as integers
@@ -47,10 +51,48 @@ trait ExpSYMVals {
     val add = e1 => e2 => e1 + e2
   }
 
+  // In the final encoding to add multiplication, we define a new type class, just for the new language form
+  val intMulSYM = new MulSYM[Int] {
+    val mul = e1 => e2 => e1 * e2
+  }
+
   val stringExpSYM = new ExpSYM[String] {
     val lit = _.show
     val neg = (r: String) => s"(-$r)"
     val add = e1 => e2 => s"($e1 + $e2)"
+  }
+
+  val stringMulSYM = new MulSYM[String] {
+    val mul = e1 => e2 => s"($e1 * $e2)"
+  }
+  // Thus the final encoding makes it easy to add not only new interpretations but also new language forms, making the 
+  // interpreters extensible by default. All the old code is reused, even in its compiled form. The extension mismatches 
+  // are statically caught by the type checker.
+  
+  // section 2.4: Pushing negation down: the final view
+  sealed trait Ctx
+  case object Pos extends Ctx
+  case object Neg extends Ctx
+
+  def ctxExpSYM[Repr: ExpSYM] = new ExpSYM[Ctx => Repr] {
+
+    val r = implicitly[ExpSYM[Repr]]
+    
+    def lit: Int => Ctx => Repr = { n => c =>
+      c match {
+        case Pos => r.lit(n)
+        case Neg => r.neg(r.lit(n))
+      }
+    }
+    def neg: (Ctx => Repr) => Ctx => Repr = { e => c =>
+      c match {
+        case Pos => e(Neg)
+        case Neg => e(Pos)
+      }
+    }
+    def add: (Ctx => Repr) => (Ctx => Repr) => Ctx => Repr = { e1 => e2 => c =>
+      r.add(e1(c))(e2(c))
+    }
   }
 }
 
@@ -58,6 +100,18 @@ object EvaluatorFin extends ExpSYMVals {
   def tf1[Repr]()(implicit sym: ExpSYM[Repr]) = {
     import sym._
     add(lit(8))(neg(add(lit(1))(lit(2))))
+  }
+
+  def tfm1[Repr]()(implicit sym: ExpSYM[Repr], msym: MulSYM[Repr]) = {
+    import sym._
+    import msym._
+    add(lit(7))(neg(mul(lit(1))(lit(2))))
+  }
+
+  def tfm2[Repr]()(implicit sym: ExpSYM[Repr], msym: MulSYM[Repr]) = {
+    import sym._
+    import msym._
+    mul(lit(7))(tf1())
   }
 
   // evaluator of the final encoded term
@@ -68,6 +122,7 @@ object EvaluatorFin extends ExpSYMVals {
   // A finally-encoded expression has an indefinite number of interpretations; eval selects one of them."
   def eval: Int => Int = identity
   eval(tf1()(intExpSYM))
+  eval(tfm1()(intExpSYM, intMulSYM))
 
   // Multiple interpretations are now possible: we may interpret the very same term tf1 as a string, 
   // to pretty-print it.
@@ -85,5 +140,6 @@ object EvaluatorFin extends ExpSYMVals {
 // and interpret uniformly by mapping an evaluator, such as eval : til1 map eval gives the result List(1,4). 
 // The final encoding represents object terms as polymorphic Scala values, which are not fully first-class: 
 // storing them in data structures or passing as arguments generally loses polymorphism. In some cases, such as the 
-// present one, it does not matter. We may still collect terms into a list tfl1 = [lit 1, add (lit 1) (lit 3)] and 
-// then map F.eval tfl1 obtaining the same [1,4].
+// present one, it does not matter. We may still collect terms into a list tfl1 = List(lit(1), add (lit(1)) (lit(3))) and 
+// then map F.eval tfl1 obtaining the same List(1,4).
+
