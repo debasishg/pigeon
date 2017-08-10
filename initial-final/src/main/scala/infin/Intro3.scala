@@ -26,6 +26,15 @@ object Intro3 {
   // List("1","(1 + 3)","(8 + (-(1 + 2)))")
   
   // Can we do the same for expressions represented in the final form?
-  // 
+  def tfl1[Repr]()(implicit sym: ExpSYM[Repr]) = {
+    import sym._
+    List(lit(1), add(lit(1))(lit(3)), F.tf1)
+  }
+
+  val tfl1_eval = tfl1()(F.intExpSYM) map F.eval
+  // res0: List[Int] = List(1, 4, 5)
+
+  val tfl1_view = tfl1()(F.stringExpSYM) map F.view
+  // res1: List[String] = List(1, (1 + 3), (8 + (-(1 + 2))))
 }
 

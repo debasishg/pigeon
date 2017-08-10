@@ -25,6 +25,7 @@ object Intro2 {
     def add: Repr => Repr => Repr
   }
 
+
   // Compared to the signatures of lit, neg and add in Intro1.scala, Repr is now a type parameter
   // * cf. Denotational Semantics
   // The declaration of ExpSYM should remind one even more of
@@ -33,7 +34,18 @@ object Intro2 {
   // _compositional_
 
   // Our sample expression in final form
-  def tf1[Repr]()(implicit sym: ExpSYM[Repr]) = {
+  // Note: The difference with Haskell is the following:
+  // In Haskell the running example has the form
+  //
+  // tf1 = add (lit 8) (neg (add (lit 1) (lit 2)))
+  //
+  // but the inferred type (provided we disable Haskell’s monomorphism restriction) is different. It's no 
+  // longer Repr (that is, Int). Rather, it is ExpSYM repr ⇒ repr, polymorphic over the semantic domain. 
+  // An object term is represented not by its abstract syntax but by its meaning, denotation in a semantic domain.
+  //
+  // With Scala we don't have the type inference like Haskell, but with standard typeclass encoding we provide
+  // the ExpSYM[Repr] as an implicit argument. Hence effectively it's also ExpSYM[Repr] => Repr
+  def tf1[Repr](implicit sym: ExpSYM[Repr]) = {
     import sym._
     add(lit(8))(neg(add(lit(1))(lit(2))))
   }
@@ -67,7 +79,7 @@ object Intro2 {
 
   // Of course, the more precise name for eval would be ``an interpretation that returns an integer''
   // There may be many interpretations that return an Int. We should use `newtype' wrappers to distinguish them.
-  val tf1_eval = eval(tf1()(intExpSYM))
+  val tf1_eval = eval(tf1(intExpSYM))
   // 5
 
   // SYM stands for Symantics: the class defines the syntax, and instances define the semantics
@@ -82,7 +94,7 @@ object Intro2 {
   // which selects from the multitude of, one may imagine, already computed interpretations.
   def view: String => String = identity
 
-  val tf1_view = view(tf1()(stringExpSYM))
+  val tf1_view = view(tf1(stringExpSYM))
   // "(8 + (-(1 + 2)))"
   //
   // One may love this approach: view and eval don't do anything (they are the identity), but give the right
