@@ -11,7 +11,12 @@ case class Neg(e: Exp) extends Exp
 case class Add(l: Exp, r: Exp) extends Exp
 
 object Exp {
-  // section 2.4: Pushing negation down : the initial view
+  // Interpreters that we saw below are compositional. But not all operations are compositional.
+  // There are however many operations – for example, program transformations and optimizations – that do not seem 
+  // compositional because the handling of a sub-expression does depend on where it appears in a larger expression (i.e.,
+  // depends on the context).
+  //
+  // section 2.4: Pushing negation down : the initial view (making seemingly non compositional operations compose)
   // Oleg says:
   //
   // "The type of push_neg emphasizes that we are transforming one expression to another; the result is an embedded 
@@ -29,7 +34,10 @@ object Exp {
 }
 
 object Evaluator {
-  // evaluator for the initial encoding
+  // All interpreters of the langauge are compositional - basically a fold realized through pattern matching
+  // and general recursion in the initial approach. Note difference in the final approach.
+  //
+  // interpreter 1 : evaluator for the initial encoding
   def eval: Exp => Int = { e: Exp =>
     e match {
       case Lit(i) => i
@@ -38,7 +46,7 @@ object Evaluator {
     }
   }
 
-  // another evaluator (view) for the initial encoding
+  // interpreter 2 : view for the initial encoding
   def view: Exp => String = { e: Exp =>
     e match {
       case Lit(i) => i.show

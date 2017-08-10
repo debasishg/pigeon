@@ -70,6 +70,9 @@ trait ExpSYMVals {
   // are statically caught by the type checker.
   
   // section 2.4: Pushing negation down: the final view
+  // The operation of pushing negation down is indeed non-compositional, because the processing of a negated expression 
+  // depends on its context. To be precise, it depends on whether the negated expression appears as part of a negated
+  // expression. We make that context-dependence explicit:
   sealed trait Ctx
   case object Pos extends Ctx
   case object Neg extends Ctx
@@ -114,7 +117,15 @@ object EvaluatorFin extends ExpSYMVals {
     mul(lit(7))(tf1())
   }
 
-  // evaluator of the final encoded term
+  // Interpreters in the final approach: Oleg says:
+  //
+  // "Our embedded language interpreters have been compositional; they define the language’s denotational semantics, 
+  // which is required to be compositional. The compositional interpretation of a term is epitomized in a fold. 
+  // Our interpreters are all folds. In the final approach, the fold is ‘wired in’ in the definition of the interpreters. 
+  // Compositionality, or context-insensitivity, lets us build the meaning of a larger expression bottom-up, from leaves 
+  // to the root. Again, in the final approach, that mode of computation is hard-wired in."
+
+  // interpreter 1 : evaluator of the final encoded term
   // Oleg says: 
   //
   // "The function eval has a strange type for an evaluator, and an even stranger definition – 
@@ -124,7 +135,7 @@ object EvaluatorFin extends ExpSYMVals {
   eval(tf1()(intExpSYM))
   eval(tfm1()(intExpSYM, intMulSYM))
 
-  // Multiple interpretations are now possible: we may interpret the very same term tf1 as a string, 
+  // interpreter 2 : Multiple interpretations are now possible: we may interpret the very same term tf1 as a string, 
   // to pretty-print it.
   //
   // The pretty-printing interpreter is again the identity; indeed it does not do anything. Only its type matters, 
