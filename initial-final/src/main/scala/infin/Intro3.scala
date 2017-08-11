@@ -9,7 +9,7 @@ object Intro3 {
   import infin.{Intro2 => F}
 
   import I.{Exp, Lit, Neg, Add}
-  import F.ExpSYM
+  import F._
 
   // Remind what is initial Exp, and what is a final ExpSYM. Discuss `initial' vs `final' from the categorical view.
   // A bit informally, I would be calling ExpSYM `final' (waving hands over the existence of the final co-algebra)
@@ -26,15 +26,15 @@ object Intro3 {
   // List("1","(1 + 3)","(8 + (-(1 + 2)))")
   
   // Can we do the same for expressions represented in the final form?
-  def tfl1[Repr]()(implicit sym: ExpSYM[Repr]) = {
+  def tfl1[Repr](implicit sym: ExpSYM[Repr]) = {
     import sym._
-    List(lit(1), add(lit(1))(lit(3)), F.tf1)
+    List(lit(1), add(lit(1))(lit(3)), tf1[Repr])
   }
 
-  val tfl1_eval = tfl1()(F.intExpSYM) map F.eval
+  val tfl1_eval = tfl1[Int] map eval
   // res0: List[Int] = List(1, 4, 5)
 
-  val tfl1_view = tfl1()(F.stringExpSYM) map F.view
+  val tfl1_view = tfl1[String] map view
   // res1: List[String] = List(1, (1 + 3), (8 + (-(1 + 2))))
 }
 

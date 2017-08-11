@@ -6,8 +6,11 @@ import cats.implicits._
 
 object Intro1 {
 
-  // section 2.1 : Initial encoding
-  // Deep / Initial embedding
+  /**
+   * section 2.1 : Initial encoding
+   * Deep / Initial embedding
+   */ 
+  
   // The data type of expressions
   trait Exp
   case class Lit(i: Int) extends Exp
@@ -39,11 +42,13 @@ object Intro1 {
   def neg: Repr => Repr = r => -r
   def add: Repr => Repr => Repr = e1 => e2 => e1 + e2
 
-  // evaluation for final encoding
-  // Oleg says "The computation is compositional: the meaning of, for example, addition is computed
-  // from the meaning, the value of, the summands. We see the first intimation
-  // of the denotational semantics, with further to come."
-  //
+  /**
+   * evaluation for final encoding
+   * Oleg says "The computation is compositional: the meaning of, for example, addition is computed
+   * from the meaning, the value of, the summands. We see the first intimation
+   * of the denotational semantics, with further to come."
+   */ 
+  
   // Our sample expression in the final form:
   // I just downcased ti1
   val tf1 = add(lit(8))(neg(add(lit(1))(lit(2))))
@@ -64,10 +69,12 @@ object Intro1 {
 
   val ti1_view = view(ti1)
   // "(8 + (-(1 + 2)))"
-  //
-  // How can we evaluate tf1 differently? It seems that the evaluator is hard-wired into tf1...
-  // Indeed, the constructor functions lit, neg, and add all have
-  // return type that is set to Int. The evaluator `view' returns a string.
-  // So, at the very least we must find a way to parameterize the constructor
-  // functions by the result type.
+  
+  /**
+   * How can we evaluate tf1 differently? It seems that the evaluator is hard-wired into tf1...
+   * Indeed, the constructor functions lit, neg, and add all have
+   * return type that is set to Int. The evaluator `view' returns a string.
+   * So, at the very least we must find a way to parameterize the constructor
+   * functions by the result type.
+   */ 
 }
