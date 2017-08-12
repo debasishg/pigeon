@@ -8,7 +8,7 @@ object FlatF {
   
   import Intro2._
   import infin.{PushNegF => Neg}
-  import Neg.{Ctx => _, _}
+  import Neg.{Ctx => NCtx, _}
 
   sealed trait Ctx[+E]
   case class LCA[E](e: E) extends Ctx[E]
@@ -37,9 +37,9 @@ object FlatF {
 
   def flata[Repr]: (Ctx[Repr] => Repr) => Repr = _(NonLCA)
 
-  // def norm[Repr] = flata[Repr] compose push_neg[Repr]
+  // def norm[Repr](t: NCtx => Repr) = flata[Repr] compose push_neg[Repr](t)
 
-  def tf3[Repr: ExpSYM] = {
+  def tf3[Repr: ExpSYM]: Repr = {
     val r = implicitly[ExpSYM[Repr]]
     import r._
     add(tf1[Repr])(neg(neg(tf1[Repr])))
