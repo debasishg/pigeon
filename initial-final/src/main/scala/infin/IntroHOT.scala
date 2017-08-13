@@ -123,6 +123,16 @@ object IntroHOT {
    * checks in the form of type tags UA/UB and empty-list checks
    * in lookp
    */ 
+
+   /**
+    * <em>Oleg explains why our tagful interpreters failed:</em>
+    *
+    * Thus the presence of the type tags like UB and UA and run-time tag checking are symptoms of the 
+    * problem of embedding typed object languages. Informally, our embedding is not ‘tight’: the algebraic 
+    * data type Exp contains more values than there are well-typed terms in the simply typed lambda-calculus 
+    * with booleans. The embedding failed to represent the well-formedness constraints imposed by the object 
+    * language’s type system.
+    */ 
 }
 
 
