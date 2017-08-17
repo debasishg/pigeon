@@ -11,6 +11,8 @@ val specs2Scalacheck = "org.specs2" %% "specs2-scalacheck" % specs2Version
 val scalacheck = "org.scalacheck" %% "scalacheck" % "1.12.4"
 val monix = "io.monix" %% "monix" % "2.3.0"
 val monixCats = "io.monix" %% "monix-cats" % "2.3.0"
+val shapeless = "com.chuusai" %% "shapeless" % "2.3.2"
+
 
 lazy val commonSettings = Seq(
   version := "0.0.1",
@@ -22,7 +24,7 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.3",
   licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   libraryDependencies ++= Seq(
-      catsAll, catsEffect, monix, monixCats,
+      catsAll, catsEffect, monix, monixCats, shapeless,
       specs2Core % Test, specs2Scalacheck % Test, scalacheck % Test,
       macroParadise, kindProjector
     )
@@ -43,7 +45,7 @@ lazy val root = (project in file(".")).
       "-language:implicitConversions",     // Allow definition of implicit functions called views
       "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
       "-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
-      "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
+      // "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
       "-Xfuture",                          // Turn on future language features.
       "-Xlint:adapted-args",               // Warn if an argument list is modified to match the receiver.
       "-Xlint:by-name-right-associative",  // By-name parameter of right associative operator.
