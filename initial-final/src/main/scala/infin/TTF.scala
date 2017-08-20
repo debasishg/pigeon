@@ -50,7 +50,7 @@ object TTF {
   
   def th2[Repr[_]](implicit ri: Symantics[Repr]): Repr[Int => Int] = {
     import ri._
-    lam((x: Repr[Int]) => add(x)(x))
+    lam(x => add(x)(x))
   }
 
   def th3[Repr[_]](implicit ri: Symantics[Repr]) = {
@@ -108,16 +108,16 @@ object TTF {
     case class S[A](val unS: Int => String) extends AnyVal 
   
     implicit def SSymantics = new Symantics[S] {
-      def int: Int => S[Int] = x => S((h: Int) => Function.const(x.show)(h))
+      def int: Int => S[Int] = x => S(h => Function.const(x.show)(h))
   
-      def add: S[Int] => S[Int] => S[Int] = e1 => e2 => S((h: Int) => s"( ${e1.unS(h)} + ${e2.unS(h)} )")
+      def add: S[Int] => S[Int] => S[Int] = e1 => e2 => S(h => s"( ${e1.unS(h)} + ${e2.unS(h)} )")
   
       def lam[A, B]: (S[A] => S[B]) => S[A => B] = f => S { h =>
         val x = s"x${h.show}"
         s"(\\\\$x -> ${f(S(Function.const(x)(_: Int))).unS(h + 1)})"
       }
   
-      def app[A, B]: S[A => B] => S[A] => S[B] = sab => sa => S((h: Int) => s"(${sab.unS(h)} ${sa.unS(h)} )")
+      def app[A, B]: S[A => B] => S[A] => S[B] = sab => sa => S(h => s"(${sab.unS(h)} ${sa.unS(h)} )")
 
       // The major difference from TTFdb is the interpretation
       // of lam
@@ -207,38 +207,81 @@ object TTF {
   // Now we have one implementation for evaluation. We can just import
   // the earlier implementations and add new ones.
   
-  import Evaluator.{R, eval}
-
-  implicit val RLambdaExpr = new LambdaExpr[R] {
-    import Evaluator.RSymantics
-
-    def int: Int => R[Int] = RSymantics.int
-    def add: R[Int] => R[Int] => R[Int] = RSymantics.add
-    def lam[A, B]: (R[A] => R[B]) => R[A => B] = RSymantics.lam
-    def app[A, B]: R[A => B] => R[A] => R[B] = RSymantics.app
-
-    def mul: R[Int] => R[Int] => R[Int] = e1 => e2 => R(e1.unR * e2.unR)
-
-    def bool: Boolean => R[Boolean] = R(_)
-
-    def leq: R[Int] => R[Int] => R[Boolean] = e1 => e2 => R(e1.unR <= e2.unR)
-
-    def if_[A]: R[Boolean] => (() => R[A]) => (() => R[A]) => R[A] = be => et => ee => 
-      R(if (be.unR) et().unR else ee().unR)
-
-    // changes from Haskell implementation : eager evaluation by default in Scala
-    def fix[A]: ((=> R[A]) => R[A]) => R[A] = f => {
-      def fx(f: (=> R[A]) => R[A]): R[A] = {
-        lazy val ra: R[A] = f(ra)
-        ra
+  object EvaluatorExt {
+    import Evaluator.{R, eval}
+  
+    implicit val RLambdaExpr = new LambdaExpr[R] {
+      import Evaluator.RSymantics
+  
+      def int: Int => R[Int] = RSymantics.int
+      def add: R[Int] => R[Int] => R[Int] = RSymantics.add
+      def lam[A, B]: (R[A] => R[B]) => R[A => B] = RSymantics.lam
+      def app[A, B]: R[A => B] => R[A] => R[B] = RSymantics.app
+  
+      def mul: R[Int] => R[Int] => R[Int] = e1 => e2 => R(e1.unR * e2.unR)
+  
+      def bool: Boolean => R[Boolean] = R(_)
+  
+      def leq: R[Int] => R[Int] => R[Boolean] = e1 => e2 => R(e1.unR <= e2.unR)
+  
+      def if_[A]: R[Boolean] => (() => R[A]) => (() => R[A]) => R[A] = be => et => ee => 
+        R(if (be.unR) et().unR else ee().unR)
+  
+      // changes from Haskell implementation : eager evaluation by default in Scala
+      def fix[A]: ((=> R[A]) => R[A]) => R[A] = f => {
+        def fx(f: (=> R[A]) => R[A]): R[A] = {
+          lazy val ra: R[A] = f(ra)
+          ra
+        }
+        R(fx(f).unR)
       }
-      R(fx(f).unR)
     }
+  
+    val tpow_eval = eval(tpow)
+    // res0: Int => (Int => Int) = infin.TTF$Evaluator$$anon$1$$Lambda$4235/204503734@5c41de28
+  
+    val tpow72_eval = eval(tpow72)
+    // res1: Int = 128
   }
 
-  val tpow_eval = eval(tpow)
-  // res0: Int => (Int => Int) = infin.TTF$Evaluator$$anon$1$$Lambda$4235/204503734@5c41de28
+  // Extending the S interpreter
+  object ShowInterpreterExt {
+    import ShowInterpreter.{S, view}
+  
+    implicit val SLambdaExpr = new LambdaExpr[S] {
+      import ShowInterpreter.SSymantics
+  
+      def int: Int => S[Int] = SSymantics.int
+      def add: S[Int] => S[Int] => S[Int] = SSymantics.add
+      def lam[A, B]: (S[A] => S[B]) => S[A => B] = SSymantics.lam
+      def app[A, B]: S[A => B] => S[A] => S[B] = SSymantics.app
+  
+      def mul: S[Int] => S[Int] => S[Int] = e1 => e2 => S(h => s"(${e1.unS(h)} * ${e2.unS(h)})")
+  
+      def bool: Boolean => S[Boolean] = x => S(Function.const(x.show)(_))
+  
+      def leq: S[Int] => S[Int] => S[Boolean] = e1 => e2 => S(h => s"(${e1.unS(h)} <= ${e2.unS(h)})")
+  
+      def if_[A]: S[Boolean] => (() => S[A]) => (() => S[A]) => S[A] = be => et => ee => 
+        S( h => s"if ${(be.unS(h))} then ${et().unS(h)} else ${ee().unS(h)}")
+  
+      def fix[A]: ((=> S[A]) => S[A]) => S[A] = e => S{ h => 
+        val self = s"self${h.show}"
+        s"(fix $self.${e(S(Function.const(self)(_: Int))).unS(h + 1)})"
+      }
+    }
 
-  val tpow72_eval = eval(tpow72)
-  // res1: Int = 128
+    val tpow_view = view(tpow)
+    // res0: String = (\\x0 -> (fix self1.(\\x2 -> if (x2 <= 0) then 1 else (x0 * (self1 ( x2 + -1 ) )))))
+  }
+
+  /**
+   * Oleg writes:
+   *
+   * The typed tagless final encoding may be called translucent: it hides concrete representations 
+   * yet exposes enough of the type information to type check the encod- ing of an object term without 
+   * knowing its concrete representation. The checked term is then well-typed in any interpreter, 
+   * for any instantiation of repr. The higher-order polymorphism, quantifying over type variables 
+   * like repr of higher kind, is essential. 
+   */ 
 }
